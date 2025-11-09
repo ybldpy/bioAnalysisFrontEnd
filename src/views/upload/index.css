@@ -1,0 +1,125 @@
+/* 整个卡片容器 */
+.sample_card {
+  border: 1px solid #e5e7eb;           /* 淡灰边框 */
+  border-radius: 12px;                 /* 圆角 */
+  background-color: #ffffff;           /* 白底 */
+  padding: 12px 16px;                  /* 内边距 */
+  margin-bottom: 12px;                 /* 卡片之间间距 */
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); /* 轻微阴影 */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;                            /* header/body/footer 之间空隙 */
+}
+
+/* hover 时稍微抬起来一点 */
+.sample_card:hover {
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+  transform: translateY(-2px);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* 头部：文件名 + 状态 + 删除按钮之类 */
+.sample_card_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+
+.sample_card_status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #e5f6ff;
+  color: #0369a1;
+}
+
+.sample_card_delete_btn {
+  border: none;
+  background: transparent;
+  color: #e84949;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.sample_card_delete_btn:hover {
+  background-color: #fee2e2;
+}
+
+.sample_card_title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 可以用在小标签上，比如 status 或 文件大小 */
+.sample_card_header_meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 中间主体：放各种输入项/下拉框 */
+.sample_card_body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 两列布局 */
+  gap: 8px 12px;                                    /* 行/列间距 */
+  margin-top: 4px;
+}
+
+/* 让某些项占满整行（比如备注） */
+.sample_card_body_full {
+  grid-column: 1 / -1;
+}
+
+/* 每一项 label + 控件 */
+.sample_card_field_label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.sample_card_field_control {
+  width: 100%;
+}
+
+/* 底部：按钮区域 + 进度条 */
+.sample_card_footer {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* 左边进度，右边按钮 */
+.sample_card_footer_left {
+  flex: 1;
+}
+
+.sample_card_footer_right {
+  display: flex;
+  gap: 8px;
+}
+
+
+.sample_card_list{
+    width: 90%;
+    min-width: 1080px;
+    /* display: flex;
+    align-items: center;
+    justify-content: center; */
+    margin: 0 auto;
+
+}
+
+
+
+

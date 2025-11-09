@@ -1,7 +1,9 @@
 // src/pages/UploadView.jsx
 import React, { useReducer, useRef, useCallback, useState, useEffect } from "react";
-import { theme } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { Input, Row, theme,Col} from "antd";
+import { InboxOutlined, DeleteOutlined} from "@ant-design/icons";
+import {Form} from "antd"
+import "./index.css";
 
 const initialState = {
   files: [], // { id, file, options, status, progress, xhr }
@@ -23,76 +25,6 @@ const readType = {
 
 
 const refSeqAccessionMap = {}
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "ADD_FILES": {
-      const added = Array.from(action.files).map((file, i) => ({
-        id: `${Date.now()}-${i}-${file.name}`,
-        file,
-        options: {
-          sampleName: file.name.replace(/\.(fastq|fq|gz|fa|fasta)/i, ""),
-          refAccession: "",
-          layout: "SE", // SE or PE
-          threads: 2,
-          note: "",
-        },
-        status: "queued", // queued | uploading | done | error | paused
-        progress: 0,
-        xhr: null,
-      }));
-      return { ...state, files: state.files.concat(added) };
-    }
-    case "UPDATE_OPTIONS": {
-      const { id, patch } = action;
-      return {
-        ...state,
-        files: state.files.map((f) =>
-          f.id === id ? { ...f, options: { ...f.options, ...patch } } : f
-        ),
-      };
-    }
-    case "SET_STATUS": {
-      const { id, status } = action;
-      return {
-        ...state,
-        files: state.files.map((f) => (f.id === id ? { ...f, status } : f)),
-      };
-    }
-    case "SET_PROGRESS": {
-      const { id, progress } = action;
-      return {
-        ...state,
-        files: state.files.map((f) => (f.id === id ? { ...f, progress } : f)),
-      };
-    }
-    case "SET_XHR": {
-      const { id, xhr } = action;
-      return {
-        ...state,
-        files: state.files.map((f) => (f.id === id ? { ...f, xhr } : f)),
-      };
-    }
-    case "REMOVE": {
-      return { ...state, files: state.files.filter((f) => f.id !== action.id) };
-    }
-    case "CLEAR_FINISHED": {
-      return {
-        ...state,
-        files: state.files.filter((f) => f.status !== "done"),
-      };
-    }
-    case "SET_UPLOADING": {
-      return { ...state, uploading: action.value };
-    }
-    case "SET_CONCURRENCY": {
-      return { ...state, concurrency: action.value };
-    }
-    default:
-      return state;
-  }
-}
-
 function UploadBtn({
   onFiles,
   accept,
@@ -181,13 +113,46 @@ function UploadBtn({
 function SampleCard({sampleConfig, samplesList, onSelectR2Sample, onSampleDelete}){
 
 
+    const [sampleNameEditing, setSampleNameEditing] = useState(false);
+    
+
+    const sampleNameLabel = "样本名称";
     return (
-        
+        <div className="sample_card">
+            <div className="sample_card_header">
+                <div className="sample_card_status">待上传</div>
+                <div className="sample_card_delete_btn">
+                    <DeleteOutlined size={16}/>
+                </div>
+            </div>
+            <div className="sample_card_body">
+                <Form>
+                    <Row>
+                        <Col span={24}>
+                            <Form.Item label={sampleNameLabel}>
+                                <Input/>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row>
+                        {sampleConfig.readType===readType.SE && (
+                            <Col>
+
+                            </Col>
+                        )}
+                    </Row>
+                </Form>
+            </div>
+            <div className="sample_card_footer">
+
+            </div>
+        </div>
     )
 
 }
 
-
+function createMockSampleData(){
+}
 
 
 
@@ -200,18 +165,22 @@ function createSampleConfig(sampleFile){
         r1SampleFile: sampleFile,
         r2SampleFile: null,
         readType: readType.SE,
-        sampleType: sampleType.virus
+        sampleType: sampleType.virus,
+        refSeqAccession: null
     }
 }
 
 export default function Upload() {
   const [sampleList, setSampleList] = useState([]);
 
-
-
   useEffect(()=>{
 
 
+    const a = [];
+    for(let i = 0;i<10;i++){
+        a.push(i);
+    }
+    // setSampleList(a);
   },[]);
 
   const onSamplesSelect = (files)=>{
@@ -236,10 +205,13 @@ export default function Upload() {
     </>
   ) : (
     <>
-
-
-    
-    
+        <div className="sample_card_list">
+            {
+                sampleList.map((i)=>{
+                    return <SampleCard></SampleCard>
+                })
+            }
+        </div>
     </>
   );
 }
