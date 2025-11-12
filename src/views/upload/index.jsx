@@ -315,6 +315,7 @@ export default function Upload() {
     }
     // setSampleList(a);
   }, []);
+  
 
   const onSamplesSelect = (files) => {
     const samples = files.map((f) => createSampleConfig(f));
