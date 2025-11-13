@@ -34,10 +34,25 @@ const initialState = {
 };
 
 const sampleType = {
-  virus: 0,
-  bacteria: 1,
-  covid: 2,
+  virus: {
+    code: 0,
+    label: "病毒"
+  },
+  bacteria: {
+    code: 1,
+    label: "细菌"
+  },
+  covid: {
+    code: 2,
+    label: "新冠"
+  },
 };
+
+const sampleChineseTypeMap = {
+  "病毒": "virus", 
+  "细菌": "bacteria",
+  "新冠": "covid"
+}
 
 const readType = {
   SE: 0,
@@ -130,68 +145,54 @@ function UploadBtn({
 
 function SampleCard({
   sampleConfig,
-  samplesList,
+  selectableR2SampleList,
   onSelectR2Sample,
-  onSampleDelete,
   onUpdateSampleConfig,
-  onUpdateSampleList
-  
+  deleteSampleHandler,
 }) {
   const [sampleNameEditing, setSampleNameEditing] = useState(false);
-  const [r2SampleSelected, setR2SampleSelected] = useState(undefined);
-
-  const sampleListFiltered = samplesList.filter(
-    (s) => s.sid !== sampleConfig.sid && s.readType === readType.SE
-  );
 
   const finishEdit = () => {
     setSampleNameEditing(false);
   };
 
   function onSampleReadTypeChange(e) {
-    sampleConfig.readType = e.target.value;
-    if(sampleConfig.readType === readType.SE && sampleConfig.r2SampleConfig){
-      const r2SampleConfig = sampleConfig.r2SampleConfig;
-      samplesList.push(r2SampleConfig);
-      sampleConfig.r2SampleConfig = null;
-      onUpdateSampleList(samplesList);
-    }
-    onUpdateSampleConfig(sampleConfig);
+    const newSampleConfig = { ...sampleConfig };
+    newSampleConfig.readType = e.target.value;
+    onUpdateSampleConfig(newSampleConfig);
   }
 
   const onInputSampleNameChange = (e) => {
-    sampleConfig.sampleName = e.target.value;
-    onUpdateSampleConfig(sampleConfig);
+    onUpdateSampleConfig({ ...sampleConfig, sampleName: e.target.value });
   };
 
   const onR2ConfigSelectClear = () => {
-    const r2Sample = sampleConfig.r2SampleConfig;
-    samplesList.push(r2Sample);
-    sampleConfig.r2SampleConfig = null;
-    onUpdateSampleList(samplesList);
+    onSelectR2Sample(sampleConfig, null);
+  };
 
-    
+  const onR2SampleChange = (r2SampleConfigSid) => {
+    onSelectR2Sample(sampleConfig, r2SampleConfigSid);
+  };
+
+  const handlSampleTypeChange = (code)=>{
+    onUpdateSampleConfig({
+      ...sampleConfig,
+      sampleType: code
+    });
   }
 
 
-  const onR2SampleChange = (r2SampleConfigSid)=>{
-
-
-    
-    const r2SampleConfig = samplesList.find(s => s.sid === r2SampleConfigSid);
-    if(!r2SampleConfig){return;}
-    sampleConfig.r2SampleConfig = r2SampleConfig;
-    const newSampleList = samplesList.filter(s => s.sid !== r2SampleConfig.sid);
-    onUpdateSampleList(newSampleList);
-    onUpdateSampleConfig(sampleConfig);
-
-  }
   const sampleNameLabel = "样本名称";
   return (
     <div className="sample_card">
       <div className="sample_card_header">
         <div className="sample_card_status">待上传</div>
-        <div className="sample_card_delete_btn">
+        <div
+          className="sample_card_delete_btn"
+          onClick={(e) => {
+            deleteSampleHandler(sampleConfig);
+          }}
+        >
           <DeleteOutlined size={16} />
         </div>
       </div>
@@ -264,19 +265,35 @@ function SampleCard({
             {/* 只有是双端时才显示第二端样本文件（可选逻辑） */}
 
             <Col>
-              <Form.Item label="第二端样本文件">
+              <Form.Item label="第二端样本">
                 <Select
-                  style={{ minWidth: 200 }}
+                  style={{ minWidth: 100 }}
                   disabled={sampleConfig.readType === readType.SE}
                   onChange={onR2SampleChange}
                   allowClear={true}
                   onClear={onR2ConfigSelectClear}
                 >
-                  {sampleListFiltered.map((s) => (
+                  {selectableR2SampleList.map((s) => (
                     <Select.Option key={s.sid} value={s.sid}>
                       {s.sampleName}
                     </Select.Option>
                   ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col>
+              <Form.Item label={"样本类型"}>
+                <Select value={sampleConfig.sampleType} style={{minWidth: 100}} onChange={handlSampleTypeChange}>
+                  { 
+                    Object.entries(sampleType).map((([k,v])=>{
+                      return (<Select.Option key={v.code} value={v.code}>
+                        {v.label}
+                      </Select.Option>)
+                    }))
+                  }
                 </Select>
               </Form.Item>
             </Col>
@@ -288,8 +305,6 @@ function SampleCard({
   );
 }
 
-function createMockSampleData() {}
-
 function createSampleConfig(sampleFile) {
   const id = crypto.randomUUID();
 
@@ -297,25 +312,17 @@ function createSampleConfig(sampleFile) {
     sid: id,
     sampleName: sampleFile.name,
     r1SampleFile: sampleFile,
-    r2SampleConfig: null,
+    r2SampleConfigId: null,
     readType: readType.SE,
     sampleType: sampleType.virus,
     refSeqAccession: null,
     uploadStatus: 0,
+    isPaired: false,
   };
 }
 
 export default function Upload() {
   const [sampleList, setSampleList] = useState([]);
-
-  useEffect(() => {
-    const a = [];
-    for (let i = 0; i < 10; i++) {
-      a.push(i);
-    }
-    // setSampleList(a);
-  }, []);
-  
 
   const onSamplesSelect = (files) => {
     const samples = files.map((f) => createSampleConfig(f));
@@ -330,14 +337,46 @@ export default function Upload() {
         return s;
       }
     });
+
+    if (sampleConfig.readType === readType.SE && sampleConfig.r2SampleConfig) {
+      newSampleList.push(sampleConfig.r2SampleConfig);
+      sampleConfig.r2SampleConfig = null;
+    }
     setSampleList(newSampleList);
   }
 
-  const onUpdateSampleList = (newSampleList)=>{
-    setSampleList([...newSampleList]);
-  }
+  const onR2Select = (sampleConfig, r2SampleId) => {
+    let newList = [...sampleList];
 
-  
+    if (!r2SampleId) {
+      if (!sampleConfig.r2SampleConfigId) {
+        const r2Sample = sampleList.find(
+          (s) => s.sid === sampleConfig.r2SampleConfigId
+        );
+        if (!r2Sample) {
+          r2Sample.isPaired = false;
+        }
+      }
+      sampleConfig.r2SampleConfigId = null;
+    } else {
+      const r2Sample = sampleList.find((s) => s.sid === r2SampleId);
+      if (!r2Sample) {
+        r2Sample.isPaired = true;
+        sampleConfig.r2SampleConfigId = r2SampleId;
+      }
+    }
+
+    setSampleList(newList);
+  };
+
+  const sampleDeleteHandler = (sampleConfig) => {
+    setSampleList((list) => {
+      return list.filter(
+        (s) =>
+          s.sid !== sampleConfig.sid && s.sid !== sampleConfig.r2SampleConfigId
+      );
+    });
+  };
 
   return sampleList.length === 0 ? (
     <>
@@ -355,17 +394,22 @@ export default function Upload() {
   ) : (
     <>
       <div className="sample_card_list">
-        {sampleList.map((i) => {
-          return (
-            <SampleCard
-              key={i.sid}
-              sampleConfig={i}
-              samplesList={sampleList}
-              onUpdateSampleConfig={onUpdateSampleConfig}
-              onUpdateSampleList={onUpdateSampleList}
-            ></SampleCard>
-          );
-        })}
+        {sampleList
+          .filter((i) => !i.isPaired)
+          .map((i) => {
+            return (
+              <SampleCard
+                key={i.sid}
+                sampleConfig={i}
+                selectableR2SampleList={sampleList.filter(
+                  (s) => s.sid !== i.sid && s.readType === readType.SE
+                )}
+                onUpdateSampleConfig={onUpdateSampleConfig}
+                onSelectR2Sample={onR2Select}
+                deleteSampleHandler={sampleDeleteHandler}
+              />
+            );
+          })}
       </div>
     </>
   );
