@@ -1,11 +1,5 @@
 // src/pages/UploadView.jsx
-import React, {
-  useReducer,
-  useRef,
-  useCallback,
-  useState,
-  useEffect,
-} from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import {
   Input,
   Row,
@@ -26,6 +20,7 @@ import {
 } from "@ant-design/icons";
 import { Form, Radio } from "antd";
 import "./index.css";
+import { loadRefSeq } from "../../api/sampleService";
 
 const initialState = {
   files: [], // { id, file, options, status, progress, xhr }
@@ -36,30 +31,23 @@ const initialState = {
 const sampleType = {
   virus: {
     code: 0,
-    label: "病毒"
+    label: "病毒",
   },
   bacteria: {
     code: 1,
-    label: "细菌"
+    label: "细菌",
   },
   covid: {
     code: 2,
-    label: "新冠"
+    label: "新冠",
   },
 };
-
-const sampleChineseTypeMap = {
-  "病毒": "virus", 
-  "细菌": "bacteria",
-  "新冠": "covid"
-}
 
 const readType = {
   SE: 0,
   PE: 1,
 };
 
-const refSeqAccessionMap = {};
 function UploadBtn({
   onFiles,
   accept,
@@ -146,6 +134,7 @@ function UploadBtn({
 function SampleCard({
   sampleConfig,
   selectableR2SampleList,
+  refSeqList,
   onSelectR2Sample,
   onUpdateSampleConfig,
   deleteSampleHandler,
@@ -174,13 +163,12 @@ function SampleCard({
     onSelectR2Sample(sampleConfig, r2SampleConfigSid);
   };
 
-  const handlSampleTypeChange = (code)=>{
+  const handlSampleTypeChange = (code) => {
     onUpdateSampleConfig({
       ...sampleConfig,
-      sampleType: code
+      sampleType: code,
     });
-  }
-
+  };
 
   const sampleNameLabel = "样本名称";
   return (
@@ -286,18 +274,41 @@ function SampleCard({
           <Row>
             <Col>
               <Form.Item label={"样本类型"}>
-                <Select value={sampleConfig.sampleType} style={{minWidth: 100}} onChange={handlSampleTypeChange}>
-                  { 
-                    Object.entries(sampleType).map((([k,v])=>{
-                      return (<Select.Option key={v.code} value={v.code}>
+                <Select
+                  value={sampleConfig.sampleType}
+                  style={{ minWidth: 100 }}
+                  onChange={handlSampleTypeChange}
+                >
+                  {Object.entries(sampleType).map(([k, v]) => {
+                    return (
+                      <Select.Option key={v.code} value={v.code}>
                         {v.label}
-                      </Select.Option>)
-                    }))
-                  }
+                      </Select.Option>
+                    );
+                  })}
                 </Select>
               </Form.Item>
             </Col>
           </Row>
+
+          {refSeqList && (<Row>
+            <Col>
+                <Form.Item label={"选择参考基因组"}>
+                  <Select allowClear={true}>
+                    {
+                      Object.entries(refSeqList).map(([k,v])=>{
+                        return (
+                          <Select.Option value={k}>
+                            {v.label}
+                          </Select.Option>
+                        )
+                      })
+                    }       
+                  </Select>
+                </Form.Item>
+            </Col>
+          </Row>)}
+
         </Form>
       </div>
       <div className="sample_card_footer"></div>
@@ -321,13 +332,33 @@ function createSampleConfig(sampleFile) {
   };
 }
 
+
+
 export default function Upload() {
   const [sampleList, setSampleList] = useState([]);
+
+
+  const [virusRefSeqList, setVirusRefSeqList] = useState({});
+  const [bacteriaRefSeqList, setBacteriaRefSeqList] = useState({});
+
+
 
   const onSamplesSelect = (files) => {
     const samples = files.map((f) => createSampleConfig(f));
     setSampleList(samples);
   };
+
+  useEffect(()=>{
+
+    loadRefSeq(sampleType.virus).then((virusRefSeqs)=>{
+      setVirusRefSeqList(virusRefSeqs);
+    }).catch();
+
+    loadRefSeq(sampleType.bacteria).then((bacteriaRefSeqs)=>{
+      setBacteriaRefSeqList(bacteriaRefSeqs);
+    }).catch();
+  },[]);
+
 
   function onUpdateSampleConfig(sampleConfig) {
     const newSampleList = sampleList.map((s) => {
@@ -407,6 +438,7 @@ export default function Upload() {
                 onUpdateSampleConfig={onUpdateSampleConfig}
                 onSelectR2Sample={onR2Select}
                 deleteSampleHandler={sampleDeleteHandler}
+                refSeqList={i.sampleType===sampleType.virus.code?virusRefSeqList:(i.sampleType === sampleType.bacteria.code?bacteriaRefSeqList:null)}
               />
             );
           })}
