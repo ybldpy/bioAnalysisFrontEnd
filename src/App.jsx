@@ -17,13 +17,14 @@ import {
   useNavigate,
   Navigate,
 } from "react-router-dom";
-import { calc } from "antd/es/theme/internal";
 
 const { Header, Footer, Sider, Content } = Layout;
 
 function Shell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const siderWidth = 200;
 
   const items = [
     { key: "/upload", icon: <UploadOutlined />, label: "上传" },
@@ -32,43 +33,50 @@ function Shell() {
   ];
 
   return (
-    <Layout style={{height: "100vh", minHeight: 900, minWidth: 900}}>
+    <Layout style={{ minHeight: "100vh" }}>
       {/* 左侧菜单栏 */}
-      <Sider>
-        <div
-          style={{
-            height: 48,
-            margin: 16,
-            color: "#fff",
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.2)",
-          }}
-        >
-          BioAnalysis
-        </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[pathname]}
-          items={items}
-          onClick={(e) => navigate(e.key)}
-        />
+      <Sider>
+        <div className="app-sider-container">
+          <div
+            style={{
+              height: 48,
+              marginLeft:16,
+              marginRight: 16,
+              marginBottom:16,
+              color: "#fff",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
+            BioAnalysis
+          </div>
+
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[pathname]}
+            items={items}
+            onClick={(e) => navigate(e.key)}
+          />
+        </div>
       </Sider>
 
       {/* 右侧内容区域 */}
 
-      <Content style={{ margin: 16, overflowY: "scroll"}}>
+      <Content style={{ margin: 16 }}>
         <div
           style={{
             padding: 16,
             background: "#fff",
             borderRadius: 8,
-            
+            minHeight: "100%",
+            minWidth: 1200,
+            width: "100%"
           }}
         >
           <Routes>

@@ -31,8 +31,24 @@
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 999px;
+  
+}
+
+.sample_card_status_pending{
   background-color: #e5f6ff;
   color: #0369a1;
+}
+
+/* 上传中：用橙色系，表示进行中 */
+.sample_card_status_uploading {
+  background-color: #fef3c7; /* 浅黄/橙 */
+  color: #b45309;           /* 深一点的橙色文字 */
+}
+
+/* 失败：用红色系，表示出错 */
+.sample_card_status_fail {
+  background-color: #fee2e2; /* 浅红底 */
+  color: #b91c1c;            /* 深红字 */
 }
 
 .sample_card_delete_btn {
@@ -66,9 +82,6 @@
 
 /* 中间主体：放各种输入项/下拉框 */
 .sample_card_body {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 两列布局 */
-  gap: 8px 12px;                                    /* 行/列间距 */
   margin-top: 4px;
 }
 
@@ -111,8 +124,7 @@
 
 
 .sample_card_list{
-    width: 90%;
-    min-width: 1080px;
+    width: 95%;
     /* display: flex;
     align-items: center;
     justify-content: center; */
